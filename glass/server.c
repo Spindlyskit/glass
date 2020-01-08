@@ -9,6 +9,8 @@
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/util/log.h>
 
+#include "desktop/output.h"
+
 bool
 server_init(struct glass_server *server)
 {
@@ -18,8 +20,13 @@ server_init(struct glass_server *server)
 	server->backend = wlr_backend_autocreate(server->wl_display, NULL);
 	if (!server->backend) {
 		wlr_log(WLR_ERROR, "Failed to create backend");
+		wl_display_destroy(server->wl_display);
 		return false;
 	}
+
+	wl_list_init(&server->outputs);
+	server->new_output.notify = new_output_notify;
+	wl_signal_add(&server->backend->events.new_output, &server->new_output);
 
 	struct wlr_renderer *renderer = wlr_backend_get_renderer(server->backend);
 	wlr_renderer_init_wl_display(renderer, server->wl_display);

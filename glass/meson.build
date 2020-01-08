@@ -1,6 +1,7 @@
 glass_sources = files(
   'main.c',
   'server.c',
+  'desktop/output.c',
 )
 
 glass_deps = [
