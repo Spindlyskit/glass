@@ -1,0 +1,6 @@
+%c -std=c11
+-pthread
+
+# Includes
+-Iinclude
+-I/usr/include
