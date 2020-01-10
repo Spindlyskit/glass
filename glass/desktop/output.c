@@ -1,9 +1,12 @@
 #include "desktop/output.h"
 
 #include <stdlib.h>
+#include <time.h>
 #include <wayland-server.h>
 #include <wlr/types/wlr_output.h>
 #include <wlr/render/wlr_renderer.h>
+#include <wlr/types/wlr_matrix.h>
+#include <wlr/types/wlr_surface.h>
 #include <wlr/util/log.h>
 
 #include "glass/server.h"
@@ -50,15 +53,37 @@ void
 output_frame_notify(struct wl_listener *listener, void *data)
 {
 	struct glass_output *output = wl_container_of(listener, output, frame);
+	struct glass_server *server = output->server;
 	struct wlr_output *wlr_output = data;
 	struct wlr_renderer *renderer = wlr_backend_get_renderer(wlr_output->backend);
 
 	wlr_output_attach_render(wlr_output, NULL);
 
-	{
-		float color[4] = { 1.0, 0, 0, 1.0 };
-		wlr_renderer_clear(renderer, color);
-	}
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+
+	struct wl_resource *resource;
+	wl_resource_for_each(resource, &server->compositor->surface_resources) {
+		struct wlr_surface *surface = wlr_surface_from_resource(resource);
+		if (!wlr_surface_has_buffer(surface)) {
+			continue;
+		}
+
+		struct wlr_box render_box = {
+			.x = 20, .y = 20,
+			.width = surface->current.width,
+			.height = surface->current.height,
+		};
+
+		float matrix[9];
+		wlr_matrix_project_box(matrix, &render_box,
+				surface->current.transform,
+				0, wlr_output->transform_matrix);
+
+		struct wlr_texture *texture = wlr_surface_get_texture(surface);
+		wlr_render_texture_with_matrix(renderer, texture, matrix, 0.8);
+		wlr_surface_send_frame_done(surface, &now);
+	};
 
 	wlr_output_commit(wlr_output);
 	wlr_renderer_end(renderer);

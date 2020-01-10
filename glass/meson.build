@@ -5,8 +5,7 @@ glass_sources = files(
 )
 
 glass_deps = [
-  wayland_protocols,
-  wayland_scanner,
+  protocols_server,
   wayland_server,
   wlroots,
   xkbcommon,

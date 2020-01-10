@@ -6,7 +6,11 @@
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_data_device.h>
+#include <wlr/types/wlr_gamma_control_v1.h>
+#include <wlr/types/wlr_gtk_primary_selection.h>
+#include <wlr/types/wlr_idle.h>
 #include <wlr/types/wlr_output_layout.h>
+#include <wlr/types/wlr_xdg_shell.h>
 #include <wlr/util/log.h>
 
 #include "desktop/output.h"
@@ -33,6 +37,13 @@ server_init(struct glass_server *server)
 
 	server->compositor = wlr_compositor_create(server->wl_display, renderer);
 	server->data_device_manager = wlr_data_device_manager_create(server->wl_display);
+
+	wl_display_init_shm(server->wl_display);
+	wlr_gamma_control_manager_v1_create(server->wl_display);
+	wlr_gtk_primary_selection_device_manager_create(server->wl_display);
+	wlr_idle_create(server->wl_display);
+
+	wlr_xdg_shell_create(server->wl_display);
 
 	server->output_layout = wlr_output_layout_create();
 	server->socket = wl_display_add_socket_auto(server->wl_display);
