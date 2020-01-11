@@ -6,6 +6,9 @@
 
 #include "glass/server.h"
 
+/**
+ * glass_output handles interaction with wlr_outputs
+ */
 struct glass_output {
 	struct wlr_output *wlr_output;
 	struct glass_server *server;

@@ -27,8 +27,11 @@ struct glass_server {
 	const char *socket;
 };
 
+/* Initialize the server */
 bool server_init(struct glass_server *server);
+/* Start an initialized server */
 void server_run(struct glass_server *server);
+/* Cleanup after the server has finished */
 void server_finish(struct glass_server *server);
 
 #endif
