@@ -14,6 +14,8 @@
 #include <wlr/util/log.h>
 
 #include "desktop/output.h"
+#include "glass/input/input.h"
+#include "glass/input/cursor.h"
 
 bool
 server_init(struct glass_server *server)
@@ -32,6 +34,9 @@ server_init(struct glass_server *server)
 	server->new_output.notify = new_output_notify;
 	wl_signal_add(&server->backend->events.new_output, &server->new_output);
 
+	server->new_input.notify = new_input_notify;
+	wl_signal_add(&server->backend->events.new_input, &server->new_input);
+
 	struct wlr_renderer *renderer = wlr_backend_get_renderer(server->backend);
 	wlr_renderer_init_wl_display(renderer, server->wl_display);
 
@@ -49,6 +54,14 @@ server_init(struct glass_server *server)
 	server->socket = wl_display_add_socket_auto(server->wl_display);
 	if (!server->socket) {
 		wlr_log(WLR_ERROR, "Failed to open Wayland socket");
+		wlr_backend_destroy(server->backend);
+		wl_display_destroy(server->wl_display);
+		return false;
+	}
+
+	server->cursor = cursor_create(server->output_layout);
+	if (!server->cursor) {
+		wlr_log(WLR_ERROR, "Failed to create cursor");
 		wlr_backend_destroy(server->backend);
 		wl_display_destroy(server->wl_display);
 		return false;
